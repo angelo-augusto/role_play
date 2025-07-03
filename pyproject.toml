@@ -1,1 +1,19 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
 
+[project]
+name = "role_play"
+version = "0.0.0"
+description = "Jouer avec un serveur et des sockets pour faire des exercices"
+authors = [
+    { name="Angelo" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.8"
+
+dependencies = [
+    "flask",
+    "flask_socketio"
+]
