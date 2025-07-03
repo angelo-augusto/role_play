@@ -217,7 +217,7 @@ game_thread.start()
 
 if __name__ == "__main__":
     # On lance le serveur via socketio
-    socketio.run(app, debug=True, port=5000)
+    socketio.run(app, debug=True, port=8000)
     
     
     
