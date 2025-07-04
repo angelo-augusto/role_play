@@ -1,9 +1,15 @@
 # app.py
 import random, math
+import os
+import sys
+
 from flask import Flask, render_template, request
 import threading, time
 from flask_socketio import SocketIO
 from pycloudflared import try_cloudflare
+
+global IN_COLAB
+IN_COLAB= 'google.colab' in sys.modules
 
 
 app = Flask(__name__)
@@ -224,10 +230,16 @@ def run_socket_io(port):
     # On lance le serveur via socketio
     socketio.run(app,  port=port, use_reloader=False)
    
-def main():
-    global PORT, game_thread
+def main(in_colab=False):
+    global PORT, game_thread ,IN_COLAB
     PORT = 5000
-    if "COLLAB" in globals():
+    
+    #valeur de incolab et IN_COLAB
+    print(f"IN_COLAB: {IN_COLAB}")
+    print(f"in_colab: {in_colab}")
+    
+    
+    if in_colab:
         # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
         print("\n--- Lancement du tunnel Cloudflare ---")
         public_url = try_cloudflare(port=PORT)
@@ -256,4 +268,4 @@ def main():
     
 
 if __name__ == "__main__":
-    main()
+    main(in_colab=IN_COLAB)
