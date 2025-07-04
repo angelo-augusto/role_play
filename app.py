@@ -9,7 +9,6 @@ from flask_socketio import SocketIO
 from pycloudflared import try_cloudflare
 
 global IN_COLAB
-IN_COLAB= 'google.colab' in sys.modules
 
 
 app = Flask(__name__)
@@ -268,4 +267,19 @@ def main(in_colab=False):
     
 
 if __name__ == "__main__":
+    
+    IN_COLAB = 'COLAB_GPU' in os.environ
+    #afficher les modules
+    print(f"Modules importés : {list(sys.modules.keys())}")
+    print(f"Modules importés dans Colab : {IN_COLAB}")  
+    #afficher les variables d'environnement
+    print(f"Variables d'environnement : {os.environ}")
+    # Lancer l'application
+    print("Lancement de l'application...")
+    if IN_COLAB:
+        print("Lancement de l'application dans Google Colab...")
+    else:
+        print("Lancement de l'application en local...") 
+        
+
     main(in_colab=IN_COLAB)
