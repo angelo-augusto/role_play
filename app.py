@@ -220,31 +220,40 @@ def run_game_thread():
     game_thread.start()
     print("✅ Boucle de jeu démarrée.")
 
-def run_socket_io():
+def run_socket_io(port):
     # On lance le serveur via socketio
-    socketio.run(app,  port=PORT)
+    socketio.run(app,  port=port, use_reloader=False)
+   
+def main():
+    global PORT, game_thread
+    PORT = 5000
+    if "COLLAB" in globals():
+        # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
+        print("\n--- Lancement du tunnel Cloudflare ---")
+        public_url = try_cloudflare(port=PORT)
+        print("\n🚀 Votre API est en ligne ! 🚀")
+        print(f"➡️  URL Publique : {public_url}")    
     
 
-if __name__ == "__main__":
-    global PORT, game_thread
+
     run_game_thread()  # Démarrer la boucle de jeu en arrière-plan
     print("🚀 Lancement du serveur Flask avec SocketIO..." )
     
-    PORT = 8000
-    server_thread = threading.Thread(target=run_socket_io)
-    server_thread.daemon = True
-    server_thread.start()
+
+    run_socket_io(PORT)
+    # server_thread = threading.Thread(target=run_socket_io, args=(PORT,))
+    # server_thread.daemon = True
+    # server_thread.start()
+    print(f"✅ Serveur Flask démarré sur le port {PORT}.")
     
     #attente 5 secondes pour s'assurer que le serveur est prêt
     time.sleep(5)   
-    
-    # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
-    print("\n--- Lancement du tunnel Cloudflare ---")
-    public_url = try_cloudflare(port=PORT)
-    print("\n🚀 Votre API est en ligne ! 🚀")
-    print(f"➡️  URL Publique : {public_url}")    
     
     
 #pour la suite 
 #gerer les ollisions entre les personnages //OK
 #creer un evenement au contact d'un autre perso
+    
+
+if __name__ == "__main__":
+    main()
