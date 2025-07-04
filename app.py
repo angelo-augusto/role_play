@@ -1,9 +1,10 @@
 # app.py
-
 import random, math
 from flask import Flask, render_template, request
 import threading, time
 from flask_socketio import SocketIO
+from pycloudflared import try_cloudflare
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cle_secrete' 
@@ -210,15 +211,38 @@ def game_loop():
         # On diffuse le nouvel état à tous les clients connectés.
         socketio.emit('update_state', game_state)
     
-        
-# On lance la boucle de jeu dans un thread séparé pour ne pas bloquer le serveur
-game_thread = threading.Thread(target=game_loop, daemon=True)
-game_thread.start()
+def run_game_thread():        
+    # On lance la boucle de jeu dans un thread séparé pour ne pas bloquer le serveur
+    # game_thread doit etre globale
+    print("🔄 Démarrage de la boucle de jeu en arrière-plan...")
+    global game_thread
+    game_thread = threading.Thread(target=game_loop, daemon=True)
+    game_thread.start()
+    print("✅ Boucle de jeu démarrée.")
+
+def run_socket_io():
+    # On lance le serveur via socketio
+    socketio.run(app,  port=PORT)
+    
 
 if __name__ == "__main__":
-    # On lance le serveur via socketio
-    socketio.run(app, debug=True, port=8000)
+    global PORT, game_thread
+    run_game_thread()  # Démarrer la boucle de jeu en arrière-plan
+    print("🚀 Lancement du serveur Flask avec SocketIO..." )
     
+    PORT = 8000
+    server_thread = threading.Thread(target=run_socket_io)
+    server_thread.daemon = True
+    server_thread.start()
+    
+    #attente 5 secondes pour s'assurer que le serveur est prêt
+    time.sleep(5)   
+    
+    # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
+    print("\n--- Lancement du tunnel Cloudflare ---")
+    public_url = try_cloudflare(port=PORT)
+    print("\n🚀 Votre API est en ligne ! 🚀")
+    print(f"➡️  URL Publique : {public_url}")    
     
     
 #pour la suite 
