@@ -268,7 +268,8 @@ def main(in_colab=False):
 
 if __name__ == "__main__":
     
-    IN_COLAB = 'COLAB_GPU' in os.environ
+    # IN_COLAB = 'COLAB_GPU' in os.environ
+    IN_COLAB = False
     #afficher les modules
     print(f"Modules importés : {list(sys.modules.keys())}")
     print(f"Modules importés dans Colab : {IN_COLAB}")  

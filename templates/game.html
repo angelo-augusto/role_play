@@ -292,21 +292,18 @@
         infoPanel.prepend(newMessage);
     });
 
-    // --- GESTION DU ZOOM TACTILE ---
+    // --- GESTION DU ZOOM TACTILE (Version Améliorée) ---
 
     const gameContainer = document.getElementById('game-container');
+    const gameWorld = document.getElementById('game-world'); // On récupère aussi le monde du jeu
 
-    // Variables pour suivre l'état du pincement
     let initialPinchDistance = null;
     let lastTileSizeOnPinchStart = TILE_SIZE;
 
-    // Détecte le moment où deux doigts touchent l'écran
+    // Détecte le début du pincement
     gameContainer.addEventListener('touchstart', function(event) {
         if (event.touches.length === 2) {
-            // Empêche le navigateur de faire défiler la page
-            event.preventDefault(); 
-            
-            // Calcule la distance initiale entre les deux doigts
+            event.preventDefault();
             initialPinchDistance = Math.hypot(
                 event.touches[0].pageX - event.touches[1].pageX,
                 event.touches[0].pageY - event.touches[1].pageY
@@ -315,35 +312,64 @@
         }
     });
 
-    // Détecte le mouvement des doigts
+    // Gère le mouvement des doigts
     gameContainer.addEventListener('touchmove', function(event) {
+        // On s'assure qu'un pincement est bien en cours
         if (event.touches.length === 2 && initialPinchDistance !== null) {
             event.preventDefault();
 
-            // Calcule la nouvelle distance entre les doigts
             const currentPinchDistance = Math.hypot(
                 event.touches[0].pageX - event.touches[1].pageX,
                 event.touches[0].pageY - event.touches[1].pageY
             );
             
-            // Calcule le ratio de zoom
+            // On calcule le ratio de zoom en temps réel
             const zoomRatio = currentPinchDistance / initialPinchDistance;
-            
-            // Applique le ratio à la taille de case de départ et la contraint
-            let newTileSize = Math.round(lastTileSizeOnPinchStart * zoomRatio);
-            TILE_SIZE = Math.max(10, Math.min(150, newTileSize)); // Limite le zoom entre 10 et 150px
 
-            // Redessine la scène si l'état du jeu est connu
-            if (localGameState) {
-                drawGameState(localGameState);
-            }
+            // On applique un zoom visuel temporaire et très rapide avec CSS
+            gameWorld.style.transform = `scale(${zoomRatio})`;
+            // NOTE : On ne lance PAS drawGameState() ici !
         }
     });
 
-    // Détecte quand les doigts sont relevés
+    // Détecte la fin du pincement
     gameContainer.addEventListener('touchend', function(event) {
-        // Réinitialise le suivi du pincement
-        initialPinchDistance = null;
+        if (initialPinchDistance !== null) {
+            // On remet la transformation CSS à zéro
+            gameWorld.style.transform = 'none';
+
+            // On recalcule le ratio final une dernière fois
+            // Note: event.touches est vide ici, on ne peut pas s'en servir.
+            // On se base sur la dernière position connue via le transform.
+            // Pour simplifier, on recalcule la nouvelle TILE_SIZE à partir du dernier ratio connu
+            const finalTransform = gameWorld.style.transform;
+            // La ligne ci-dessus est juste pour illustrer, en pratique le ratio est déjà connu.
+            // Le calcul final se fait avec les dernières valeurs avant le touchend.
+            // Pour être précis, on le fait ici.
+            // C'est une simplification, le calcul du ratio final est complexe au touchend,
+            // donc on va plutôt mettre à jour TILE_SIZE dans le touchmove
+            // et ne lancer le redraw qu'au touchend.
+            
+            // *** Approche Corrigée et Simplifiée ***
+            // Recalculons la nouvelle TILE_SIZE à partir du dernier état connu
+            const currentTransform = window.getComputedStyle(gameWorld).transform;
+            let scale = 1;
+            if (currentTransform && currentTransform !== 'none') {
+                const matrix = currentTransform.match(/matrix\((.+)\)/);
+                if(matrix) scale = parseFloat(matrix[1].split(', ')[0]);
+            }
+            
+            const newTileSize = Math.round(lastTileSizeOnPinchStart * scale);
+            TILE_SIZE = Math.max(10, Math.min(150, newTileSize));
+
+            // On lance le redessin complet UNE SEULE FOIS
+            if (localGameState) {
+                drawGameState(localGameState);
+            }
+
+            // On réinitialise l'état du pincement
+            initialPinchDistance = null;
+        }
     });
 </script>
 </body>
