@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RPG - Mouvement sur Grille</title>
     <style>
         /* --- Le CSS est essentiel pour que les éléments soient visibles --- */
@@ -12,7 +13,7 @@
             /* Empêche le défilement de la page entière */
             overflow: hidden; 
         }
-        #game-container {
+        #game-container { 
             /* Il doit être décalé pour ne pas être caché par les barres fixes */
             margin-left: 300px; /* Largeur de la barre latérale */
             height: 100vh;
@@ -289,6 +290,60 @@
         const newMessage = document.createElement('p');
         newMessage.textContent = `Vous entendez ${data.from_id.substring(0,5)}... crier : ${data.message}`;
         infoPanel.prepend(newMessage);
+    });
+
+    // --- GESTION DU ZOOM TACTILE ---
+
+    const gameContainer = document.getElementById('game-container');
+
+    // Variables pour suivre l'état du pincement
+    let initialPinchDistance = null;
+    let lastTileSizeOnPinchStart = TILE_SIZE;
+
+    // Détecte le moment où deux doigts touchent l'écran
+    gameContainer.addEventListener('touchstart', function(event) {
+        if (event.touches.length === 2) {
+            // Empêche le navigateur de faire défiler la page
+            event.preventDefault(); 
+            
+            // Calcule la distance initiale entre les deux doigts
+            initialPinchDistance = Math.hypot(
+                event.touches[0].pageX - event.touches[1].pageX,
+                event.touches[0].pageY - event.touches[1].pageY
+            );
+            lastTileSizeOnPinchStart = TILE_SIZE;
+        }
+    });
+
+    // Détecte le mouvement des doigts
+    gameContainer.addEventListener('touchmove', function(event) {
+        if (event.touches.length === 2 && initialPinchDistance !== null) {
+            event.preventDefault();
+
+            // Calcule la nouvelle distance entre les doigts
+            const currentPinchDistance = Math.hypot(
+                event.touches[0].pageX - event.touches[1].pageX,
+                event.touches[0].pageY - event.touches[1].pageY
+            );
+            
+            // Calcule le ratio de zoom
+            const zoomRatio = currentPinchDistance / initialPinchDistance;
+            
+            // Applique le ratio à la taille de case de départ et la contraint
+            let newTileSize = Math.round(lastTileSizeOnPinchStart * zoomRatio);
+            TILE_SIZE = Math.max(10, Math.min(150, newTileSize)); // Limite le zoom entre 10 et 150px
+
+            // Redessine la scène si l'état du jeu est connu
+            if (localGameState) {
+                drawGameState(localGameState);
+            }
+        }
+    });
+
+    // Détecte quand les doigts sont relevés
+    gameContainer.addEventListener('touchend', function(event) {
+        // Réinitialise le suivi du pincement
+        initialPinchDistance = null;
     });
 </script>
 </body>
