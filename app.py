@@ -6,7 +6,7 @@ import sys
 from flask import Flask, render_template, request
 import threading, time
 from flask_socketio import SocketIO
-from pycloudflared import try_cloudflare
+# from pycloudflared import try_cloudflare
 
 global IN_COLAB
 
@@ -238,12 +238,12 @@ def main(in_colab=False):
     print(f"in_colab: {in_colab}")
     
     
-    if in_colab:
-        # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
-        print("\n--- Lancement du tunnel Cloudflare ---")
-        public_url = try_cloudflare(port=PORT)
-        print("\n🚀 Votre API est en ligne ! 🚀")
-        print(f"➡️  URL Publique : {public_url}")    
+    # if in_colab:
+    #     # --- On lance le tunnel SEULEMENT si l'API a démarré sans erreur ---
+    #     print("\n--- Lancement du tunnel Cloudflare ---")
+    #     public_url = try_cloudflare(port=PORT)
+    #     print("\n🚀 Votre API est en ligne ! 🚀")
+    #     print(f"➡️  URL Publique : {public_url}")    
     
 
 
